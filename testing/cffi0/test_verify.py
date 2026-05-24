@@ -38,9 +38,8 @@ def setup_module():
     def _write_source_and_check(self, file=None):
         base_write_source(self, file)
         if file is None:
-            f = open(self.sourcefilename)
-            data = f.read()
-            f.close()
+            with open(self.sourcefilename) as f:
+                data = f.read()
             data = _r_comment.sub(' ', data)
             data = _r_string.sub('"skipped"', data)
             assert '$' not in data
@@ -251,7 +250,7 @@ def test_all_integer_and_float_types():
     for typename in all_primitive_types:
         if (all_primitive_types[typename] == 'c' or
             all_primitive_types[typename] == 'j' or    # complex
-            typename == '_Bool' or typename == 'long double'):
+            typename in {'_Bool', 'long double'}):
             pass
         else:
             typenames.append(typename)
@@ -1440,9 +1439,8 @@ def test_relative_to():
     tmpdir = tempfile.mkdtemp(dir=str(udir))
     ffi = FFI()
     ffi.cdef("int foo(int);")
-    f = open(os.path.join(tmpdir, 'foo.h'), 'w')
-    f.write("int foo(int a) { return a + 42; }\n")
-    f.close()
+    with open(os.path.join(tmpdir, 'foo.h'), 'w') as f:
+        f.write("int foo(int a) { return a + 42; }\n")
     lib = ffi.verify('#include "foo.h"',
                      include_dirs=['.'],
                      relative_to=os.path.join(tmpdir, 'x'))
@@ -1665,7 +1663,7 @@ def test_FILE_stored_in_stdout():
     os.close(fdr)
     # the 'X' might remain in the user-level buffer of 'fw1' and
     # end up showing up after the 'hello, 42!\n'
-    assert result == b"Xhello, 42!\n" or result == b"hello, 42!\nX"
+    assert result in {b"Xhello, 42!\n", b"hello, 42!\nX"}
 
 def test_FILE_stored_explicitly():
     ffi = FFI()
@@ -1691,7 +1689,7 @@ def test_FILE_stored_explicitly():
     os.close(fdr)
     # the 'X' might remain in the user-level buffer of 'fw1' and
     # end up showing up after the 'hello, 42!\n'
-    assert result == b"Xhello, 42!\n" or result == b"hello, 42!\nX"
+    assert result in {b"Xhello, 42!\n", b"hello, 42!\nX"}
 
 def test_global_array_with_missing_length():
     ffi = FFI()

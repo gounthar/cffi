@@ -287,10 +287,8 @@ class Recompiler:
             self.write_c_source_to_f(f, preamble)
 
     def _rel_readlines(self, filename):
-        g = open(os.path.join(os.path.dirname(__file__), filename), 'r')
-        lines = g.readlines()
-        g.close()
-        return lines
+        with open(os.path.join(os.path.dirname(__file__), filename), 'r') as g:
+            return g.readlines()
 
     def write_c_source_to_f(self, f, preamble):
         self._f = f
@@ -538,8 +536,7 @@ class Recompiler:
                                                     tovar, errcode)
             return
         #
-        elif (isinstance(tp, model.StructOrUnionOrEnum) or
-              isinstance(tp, model.BasePrimitiveType)):
+        elif (isinstance(tp, (model.StructOrUnionOrEnum, model.BasePrimitiveType))):
             # a struct (not a struct pointer) as a function argument;
             # or, a complex (the same code works)
             self._prnt('  if (_cffi_to_c((char *)&%s, _cffi_type(%d), %s) < 0)'
